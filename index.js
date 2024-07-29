@@ -24,9 +24,23 @@ async function run() {
   try {
     const menu = client.db("tastyFoodsDb").collection("menu");
     const reviews = client.db("tastyFoodsDb").collection("reviews");
+    const carts = client.db("tastyFoodsDb").collection("carts");
 
     app.get("/menu", async (req, res) => {
       const result = await menu.find().toArray();
+      res.send(result);
+    });
+
+    app.get("/carts", async (req, res) => {
+      const email = req.query.email;
+      const query = { email };
+      const result = await carts.find(query).toArray();
+      res.send(result);
+    });
+
+    app.post("/carts", async (req, res) => {
+      const cart = req.body;
+      const result = await carts.insertOne(cart);
       res.send(result);
     });
 
@@ -42,6 +56,7 @@ async function run() {
     // Ensures that the client will close when you finish/error
   }
 }
+
 run().catch(console.dir);
 
 app.get("/", (req, res) => {

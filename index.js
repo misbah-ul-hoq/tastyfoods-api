@@ -5,8 +5,6 @@ require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
-const crypto = require("crypto");
-console.log(crypto.randomBytes(32).toString("hex"));
 
 // middlewares
 app.use(express.json());
@@ -29,6 +27,15 @@ async function run() {
     const reviews = client.db("tastyFoodsDb").collection("reviews");
     const carts = client.db("tastyFoodsDb").collection("carts");
     const users = client.db("tastyFoodsDb").collection("users");
+
+    // token generation
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res.send({ token });
+    });
 
     app.get("/menu", async (req, res) => {
       const result = await menu.find().toArray();
@@ -55,7 +62,24 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/users", async (req, res) => {
+    // token verify middlewear function
+    const verifyToken = (req, res, next) => {
+      const token = req.headers.authorization;
+      console.log(token);
+      if (!token) {
+        return res.status(401).send({ message: "Unauthorized access" });
+      }
+
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(401).send({ message: "something went wrong" });
+        }
+        req.decoded = decoded;
+        next();
+      });
+    };
+
+    app.get("/users", verifyToken, async (req, res) => {
       const result = await users.find().toArray();
       res.send(result);
     });
@@ -80,9 +104,7 @@ async function run() {
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
-  } finally {
-    // Ensures that the client will close when you finish/error
-  }
+  } catch (e) {}
 }
 
 run().catch(console.dir);

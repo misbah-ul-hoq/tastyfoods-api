@@ -2,8 +2,11 @@ const express = require("express");
 const cors = require("cors");
 const port = process.env.PORT || 8080;
 require("dotenv").config();
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
+const crypto = require("crypto");
+console.log(crypto.randomBytes(32).toString("hex"));
 
 // middlewares
 app.use(express.json());

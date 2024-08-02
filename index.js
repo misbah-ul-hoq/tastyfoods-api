@@ -63,7 +63,7 @@ async function run() {
     });
 
     // token verify middlewear function
-    const verifyToken = (req, res, next) => {
+    const verifyToken = async (req, res, next) => {
       const token = req.headers.authorization;
 
       if (!token) {
@@ -79,7 +79,18 @@ async function run() {
       });
     };
 
-    app.get("/users", verifyToken, async (req, res) => {
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email };
+      const user = await users.findOne(query);
+      if (!user.isAdmin) {
+        res.status(401).send({ message: "permission denied" });
+      } else {
+        next();
+      }
+    };
+
+    app.get("/users", verifyToken, verifyAdmin, async (req, res) => {
       // console.log(req.decoded);
       const result = await users.find().toArray();
       res.send(result);

@@ -42,6 +42,12 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/menu", verifyToken, verifyAdmin, async (req, res) => {
+      const menuItem = req.body;
+      const result = await menu.insertOne(menuItem);
+      res.send(result);
+    });
+
     app.get("/carts", async (req, res) => {
       const email = req.query.email;
       const query = { email };
@@ -98,7 +104,7 @@ async function run() {
 
     app.get("/user", verifyToken, async (req, res) => {
       const email = req.query.email;
-      console.log("inside user get function", req.decoded);
+      // console.log("inside user get function", req.decoded);
       if (email != req.decoded.email) {
         return res.status(401).send({ message: "unauthorized access" });
       }
